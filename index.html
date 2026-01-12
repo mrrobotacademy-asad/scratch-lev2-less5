@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr Robot Academy - التحدي الذكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --correct: #2ed573;
+            --wrong: #ff4757;
+            --warning: #f1c40f;
+            --bg: #0f0c29;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --radius: 15px;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b, #0f0c29);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .header { text-align: center; padding: 25px; width: 100%; }
+        
+        .logo-img { 
+            width: 220px; height: auto; max-height: 100px;
+            object-fit: contain; border: 3px solid var(--secondary);
+            border-radius: 10px; padding: 5px;
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 20px rgba(0,206,201,0.3);
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 25px; padding: 25px;
+            width: 90%; max-width: 800px;
+            margin-bottom: 50px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .gallery-section {
+            margin: 20px 0 30px 0; padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .gallery-title {
+            color: var(--secondary); margin-bottom: 15px;
+            font-size: 1.3rem; text-align: right; font-weight: bold;
+        }
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        .gallery-item {
+            position: relative; overflow: hidden;
+            border-radius: 12px; border: 2px solid rgba(255,255,255,0.1);
+            background: #000; aspect-ratio: 16 / 9;
+            display: flex; align-items: center; justify-content: center;
+            cursor: zoom-in; transition: 0.3s;
+        }
+        .gallery-item img {
+            max-width: 100%; max-height: 100%;
+            object-fit: contain; transition: 0.5s;
+        }
+        .gallery-item:hover { border-color: var(--secondary); transform: scale(1.03); }
+
+        #lightbox {
+            display: none; position: fixed; z-index: 1000;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center; align-items: center;
+            cursor: zoom-out;
+        }
+        #lightbox img {
+            max-width: 90%; max-height: 80%;
+            border: 3px solid var(--secondary);
+            border-radius: 10px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        .explanation-slider {
+            position: relative; background: rgba(0,0,0,0.3);
+            border-radius: var(--radius); padding: 30px; margin: 20px 0;
+            min-height: 250px; display: flex; flex-direction: column;
+            justify-content: center; border-bottom: 5px solid var(--primary);
+        }
+        .explanation-card h3 { color: var(--secondary); margin-top: 0; font-size: 1.6rem; }
+        .slider-nav { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        .nav-btn {
+            background: var(--primary); border: none; color: white;
+            padding: 10px 25px; border-radius: 30px; cursor: pointer;
+            font-weight: bold; transition: 0.2s;
+        }
+        .nav-btn:disabled { background: #444; cursor: not-allowed; }
+        .code-block {
+            background: #1e1e1e; color: #58D68D; padding: 15px;
+            font-family: 'Fira Code', monospace; direction: ltr;
+            border-radius: 8px; margin: 15px 0; font-size: 1.1rem;
+        }
+        .status-bar {
+            display: flex; justify-content: space-between; background: rgba(0,0,0,0.4);
+            padding: 15px; border-radius: var(--radius); margin-bottom: 20px;
+        }
+        .code-display {
+            background: #000; padding: 25px; border-radius: var(--radius); font-family: 'Fira Code', monospace;
+            direction: ltr; text-align: left; border-left: 5px solid var(--primary); margin-bottom: 20px; font-size: 1.4rem;
+        }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .option-btn {
+            background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+            padding: 18px; color: white; cursor: pointer; border-radius: var(--radius); transition: 0.3s;
+        }
+        .option-btn:hover { background: var(--primary); }
+        .option-btn.selected { background: var(--primary); border-color: white; }
+        .btn-main {
+            background: linear-gradient(to right, var(--primary), #8e44ad);
+            color: white; border: none; padding: 18px 40px;
+            cursor: pointer; font-weight: 900; border-radius: 50px; font-size: 1.3rem;
+        }
+        .control-group { display: flex; gap: 10px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+        .hidden { display: none !important; }
+        input[type="text"] {
+            width: 80%; padding: 15px; background: rgba(0,0,0,0.3); border: 2px solid var(--primary); color: white; border-radius: var(--radius); text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div id="lightbox" onclick="closeImg()">
+    <img id="lightbox-img" src="">
+</div>
+
+<div class="header">
+    <img src="logo.png" alt="Mr Robot Logo" class="logo-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/220x80/6c5ce7/ffffff?text=MR+ROBOT+ACADEMY';">
+    <h1 style="margin:15px 0; font-size: 2.2rem;">Mr Robot Academy</h1>
+    <h6 style="margin:2px 0; font-size: 1.2rem;">مهندس/ أندرو مجدي - 01285529570</h6>
+</div>
+
+<div class="container">
+    <div id="start-screen">
+        <h2 style="color:var(--warning);">🚀 رحلة البرمجة مع مستر روبوت</h2>
+        
+        <div class="gallery-section">
+            <div class="gallery-title">📸 صور الأكواد البرمجية:</div>
+            <div class="images-grid">
+                <div class="gallery-item" onclick="openImg(this)"><img src="a1.JPG" alt="A1"></div>
+                 
+                
+                
+            </div>
+        </div>
+
+        <div class="explanation-slider">
+            <div id="slide-content"></div>
+            <div class="slider-nav">
+                <button class="nav-btn" onclick="moveSlide(-1)" id="prevSlide">السابق</button>
+                <span id="slide-num" style="align-self:center; font-weight:bold;">1 / 30</span>
+                <button class="nav-btn" onclick="moveSlide(1)" id="nextSlide">التالي</button>
+            </div>
+        </div>
+
+        <div style="margin: 30px 0;">
+            <input type="text" id="username" placeholder="اكتب اسمك يا بطل هنا...">
+        </div>
+        <button class="btn-main" onclick="initQuiz()">ابدأ تحدي الـ 30 سؤال 🎯</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="status-bar">
+            <div>⏰ <span id="timer-val">00:00</span></div>
+            <div id="progress-text" style="color:var(--secondary)">السؤال 1 / 30</div>
+            <div>⭐ <span id="score-val">0</span></div>
+        </div>
+        <div class="question-zone">
+            <h3 id="q-text"></h3>
+            <div class="code-display" id="q-code"></div>
+            <div id="options-container" class="options-grid"></div>
+            <div id="input-container" class="hidden">
+                <input type="text" id="user-code-input" placeholder="اكتب إجابتك هنا...">
+            </div>
+            <div id="hint-box" style="margin-top:20px; display:none; color:var(--warning); background:rgba(0,0,0,0.3); padding:10px; border-radius:10px;">
+                💡 تلميحة: <span id="hint-text"></span>
+            </div>
+            <div class="control-group">
+                <button class="option-btn" style="background:#555;" onclick="navigate(-1)" id="prev-btn">⬅️ السابق</button>
+                <button class="option-btn" style="background:var(--warning); color:#000;" onclick="skipQuestion()">⏭️ تخطي</button>
+                <button class="option-btn" style="background:var(--wrong);" onclick="revealAnswer()">🔑 إجابة</button>
+                <button class="btn-main" style="flex-grow:1;" onclick="handleStep()">تحقق ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h1 style="font-size: 4rem;">🏆</h1>
+        <h2 id="congrats-msg">ممتاز!</h2>
+        <p id="final-stats" style="font-size:1.5rem"></p>
+        <button class="btn-main" onclick="location.reload()">جولة جديدة 🔄</button>
+    </div>
+</div>
+
+<script>
+function openImg(el) {
+    const src = el.querySelector('img').src;
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').style.display = 'flex';
+}
+function closeImg() {
+    document.getElementById('lightbox').style.display = 'none';
+}
+
+const detailedExplanation = [
+    { title: "حدث السهم الأيمن ➡️", code: "when right arrow key pressed", desc: "نقطة الانطلاق للحركة جهة اليمين عند الضغط على لوحة المفاتيح." },
+    { title: "التوجيه لليمين 🔄", code: "point in direction 90", desc: "ضبط زاوية الكائن لتكون 90 درجة، وهي الزاوية القياسية لجهة اليمين في سكراتش." },
+    { title: "الاستدعاء المتكرر 🔄", code: "lose or win (pink block)", desc: "استدعاء الوظيفة المخصصة بعد كل ضغطة سهم لضمان فحص القواعد باستمرار." },
+    { title: "حدث السهم الأيسر ⬅️", code: "when left arrow key pressed", desc: "بدء تنفيذ أوامر الحركة لجهة اليسار فور استشعار الضغط على المفتاح." },
+    { title: "التوجيه لليسار 🔄", code: "point in direction -90", desc: "ضبط الزاوية لـ -90 درجة، مما يجعل الكائن ينظر ويتحرك جهة اليسار." },
+    { title: "حدث السهم العلوي ⬆️", code: "when up arrow key pressed", desc: "تفعيل كود الحركة الصاعدة للأعلى داخل منصة العمل." },
+    { title: "التوجيه للأعلى ⬆️", code: "point in direction 0", desc: "جعل اتجاه الكائن عمودياً للأعلى (درجة صفر) قبل بدء الحركة." },
+    { title: "حدث السهم السفلي ⬇️", code: "when down arrow key pressed", desc: "تفعيل كود الحركة النازلة للأسفل." },
+    { title: "التوجيه للأسفل ⬇️", code: "point in direction 180", desc: "ضبط زاوية الكائن لتكون 180 درجة ليتحرك رأسياً نحو الأسفل." },
+    { title: "قوة اللبنات المخصصة 🏗️", code: "define lose or win", desc: "إنشاء وظيفة (Function) تجمع منطق اللعبة كاملاً في مكان واحد لتسهيل التعديل." },
+    { title: "المحرك الحركي 👣", code: "move 5 steps", desc: "اللبنة المسؤولة عن الإزاحة الفعلية للكائن بمقدار 5 وحدات في الاتجاه المحدد." },
+    { title: "منطق الاصطدام 🛑", code: "if touching color [Black]", desc: "استخدام الحساسات اللونية لإنشاء جدران وهمية لا يمكن للكائن تجاوزها." },
+    { title: "إعادة التعيين (Reset) 📍", code: "go to x: -182 y: 123", desc: "إرجاع الكائن لإحداثيات البداية فور ملامسة العائق الأسود." },
+    { title: "الاستشعار النوعي 💧", code: "Sensing Category", desc: "استخدام فئة الاستشعار (اللون الأزرق الفاتح) لربط الكائن بالبيئة المحيطة." },
+    { title: "التحقق من الهدف 🎯", code: "if touching Mouse1", desc: "فحص ملامسة كائن الهدف (الفأر) لتحديد حالة الانتصار." },
+    { title: "إخراج النص 🎉", code: "say [لقد فزت]", desc: "وسيلة التواصل البصرية مع اللاعب لإعلامه بنهاية اللعبة بنجاح." },
+    { title: "مؤقت الرسالة ⏱️", code: "for 2 seconds", desc: "تحديد فترة زمنية لبقاء نص الفوز ظاهراً قبل أن يختفي." },
+    { title: "الموضع السيني (X) 📏", code: "x: -182", desc: "تحديد موقع الكائن في أقصى يسار الشاشة عند بدء اللعبة أو الخسارة." },
+    { title: "الموضع الصادي (Y) 📏", code: "y: 123", desc: "تحديد موقع الكائن في الجزء العلوي من الشاشة." },
+    { title: "هندسة الكود 📐", code: "Modular Programming", desc: "تقسيم الكود إلى 'أحداث حركة' و 'منطق اللعبة' يجعل البرنامج منظماً واحترافياً." },
+    { title: "الاستجابة الفورية ⚡", code: "Real-time Action", desc: "الكود يعمل بمجرد الضغط على المفاتيح دون الحاجة للنقر على العلم الأخضر في كل مرة." },
+    { title: "تجنب التكرار (DRY) 🧹", code: "Don't Repeat Yourself", desc: "بدلاً من كتابة كود الاصطدام 4 مرات تحت كل سهم، كتبناه مرة واحدة داخل define." },
+    { title: "التفاعل الفيزيائي 🧱", code: "Collision Detection", desc: "محاكاة الاصطدام بالجدران كما في الألعاب الحقيقية باستخدام الألوان." },
+    { title: "منطق الـ If ⚖️", code: "Control Flow", desc: "استخدام (If) يمثل عقل البرنامج الذي يتخذ القرارات بناءً على الظروف." },
+    { title: "الربط بين الكائنات 🔗", code: "Inter-object Interaction", desc: "التفاعل بين الكائن الحالي و كائن Mouse1 يظهر تكامل عناصر المشروع." },
+    { title: "توجيه الوجه 🎭", code: "Rotation Style", desc: "اللبنات الزرقاء تضمن دوران الكائن باتجاه حركته ليعطي انطباعاً واقعياً." },
+    { title: "تعديل الصعوبة ⚙️", code: "Difficulty Adjustment", desc: "تغيير رقم (5) في move يجعل اللعبة أسرع أو أبطأ." },
+    { title: "نظام الإحداثيات الديكارتي 📉", code: "Cartesian System", desc: "توزيع الحركة بناءً على شبكة X و Y المكونة لمنصة سكراتش." },
+    { title: "البرمجة بالأحداث 🔔", code: "Event-Driven", desc: "بنية البرنامج تعتمد على 'الأحداث' (الضغط على المفاتيح) وليس التسلسل الخطي." },
+    { title: "تحليل الخوارزمية 🧠", code: "Algorithm Design", desc: "الخوارزمية هي: تحرك -> افحص التصادم -> افحص الفوز -> كرر." }
+];
+
+const questions = [
+    { type: 'select', q: 'ما هو الاتجاه (Direction) المرتبط بالسهم الأيمن؟', options: ['0', '90', '180'], ans: '90', hint: 'انظر لأول لبنة زرقاء' },
+    { type: 'input', q: 'ما اسم اللبنة الوردية التي تجمع كل قواعد اللعبة؟', ans: 'lose or win', hint: 'مكتوبة تحت كل سهم' },
+    { type: 'select', q: 'ماذا يحدث للكائن عند ملامسة اللون الأسود؟', options: ['يتحرك 10 خطوات', 'يعود للإحداثيات (-182, 123)', 'يقول لقد فزت'], ans: 'يعود للإحداثيات (-182, 123)', hint: 'شرط touching color' },
+    { type: 'input', q: 'كم عدد الخطوات (steps) التي يتحركها الكائن؟', ans: '5', hint: 'الرقم داخل لبنة move' },
+    { type: 'select', q: 'أي سهم يستخدم الزاوية 0؟', options: ['السهم العلوي', 'السهم السفلي', 'السهم الأيسر'], ans: 'السهم العلوي', hint: '0 تعني الاتجاه للأعلى' },
+    { type: 'input', q: 'ما هو الكائن الذي يمثل هدف الفوز؟', ans: 'Mouse1', hint: 'موجود في شرط touching الثاني' },
+    { type: 'select', q: 'ما لون فئة اللبنات التي تحتوي على "touching color"؟', options: ['أزرق غامق', 'أزرق فاتح (Sensing)', 'أصفر'], ans: 'أزرق فاتح (Sensing)', hint: 'لبنات الاستشعار' },
+    { type: 'input', q: 'كم ثانية تستغرق رسالة الفوز في الظهور؟', ans: '2', hint: 'الرقم في لبنة say' },
+    { type: 'select', q: 'ما هي الزاوية المخصصة للسهم السفلي؟', options: ['90', '180', '-90'], ans: '180', hint: '180 تعني للأسفل' },
+    { type: 'input', q: 'ما هو الإحداثي الصادي (Y) الذي يعود إليه الكائن عند الخسارة؟', ans: '123', hint: 'go to x: ... y: ??' },
+    { type: 'select', q: 'لماذا نستخدم لبنة "define"؟', options: ['لتغيير لون الخلفية', 'لتنظيم الكود ومنع التكرار', 'لزيادة سرعة الكائن'], ans: 'لتنظيم الكود ومنع التكرار', hint: 'تجمع الأوامر في مكان واحد' },
+    { type: 'input', q: 'ما هي الزاوية المخصصة للسهم الأيسر؟', ans: '-90', hint: 'انظر لبنة point تحت left arrow' },
+    { type: 'select', q: 'ماذا يقول الكائن عند لمس Mouse1؟', options: ['حاول مرة أخرى', 'لقد فزت', 'مرحباً'], ans: 'لقد فزت', hint: 'موجودة في الجزء السفلي من الـ define' },
+    { type: 'input', q: 'ما هو لون العائق الذي إذا لمسه الكائن يخسر؟', ans: 'أسود', hint: 'اللون داخل المربع الصغير' },
+    { type: 'select', q: 'في أي فئة نجد لبنة "when right arrow key pressed"؟', options: ['Motion', 'Events', 'Control'], ans: 'Events', hint: 'لبنات الأحداث الصفراء' },
+    { type: 'input', q: 'كم عدد شروط (if) الموجودة داخل لبنة "define"؟', ans: '2', hint: 'عد اللبنات البرتقالية' },
+    { type: 'select', q: 'ما هو الترتيب الصحيح للأوامر داخل الـ define؟', options: ['الفوز ثم الحركة', 'الحركة ثم فحص الاصطدام ثم فحص الفوز', 'الخسارة أولاً دائماً'], ans: 'الحركة ثم فحص الاصطدام ثم فحص الفوز', hint: 'انظر لترتيب اللبنات من الأعلى للأسفل' },
+    { type: 'input', q: 'ما هو الإحداثي السيني (X) لنقطة البداية؟', ans: '-182', hint: 'القيمة الأولى في لبنة go to' },
+    { type: 'select', q: 'إذا أردنا جعل الكائن أبطأ، ماذا نفعل؟', options: ['نغير 5 إلى 2', 'نغير 5 إلى 10', 'نغير اللون للأسود'], ans: 'نغير 5 إلى 2', hint: 'تقليل عدد الخطوات يقلل السرعة' },
+    { type: 'input', q: 'ما هي الفئة اللونية للبنة "move 5 steps"؟', ans: 'Motion', hint: 'أو الحركة (اللون الأزرق)' },
+    { type: 'select', q: 'هل يعمل الكود إذا ضغطنا على المسطرة (Space)؟', options: ['نعم', 'لا (فقط الأسهم مبرمجة)', 'نعم إذا كان الماوس قريباً'], ans: 'لا (فقط الأسهم مبرمجة)', hint: 'راجع لبنات الأحداث في الأعلى' },
+    { type: 'input', q: 'ما هو اسم الخاصية التي تحدد "أين ينظر الكائن"؟', ans: 'direction', hint: 'تستخدم مع لبنة point in' },
+    { type: 'select', q: 'ما نوع اللبنة "lose or win"؟', options: ['لبنة استشعار', 'لبنة مخصصة (My Blocks)', 'لبنة صوت'], ans: 'لبنة مخصصة (My Blocks)', hint: 'لونها وردي' },
+    { type: 'input', q: 'أين يتم استدعاء الوظيفة الوردية؟', ans: 'تحت كل سهم', hint: 'انظر لنهاية كل مقطع برمجي أصفر' },
+    { type: 'select', q: 'إذا لمس الكائن اللون الأسود، هل تظهر رسالة "لقد فزت"؟', options: ['نعم', 'لا، سيعود للبداية فقط', 'تظهر لمدة ثانية'], ans: 'لا، سيعود للبداية فقط', hint: 'كل شرط منفصل عن الآخر' },
+    { type: 'input', q: 'ما هي الكلمة الإنجليزية للبنة "قل" المستخدمة؟', ans: 'say', hint: 'اللبنة البنفسجية' },
+    { type: 'select', q: 'أي محور يتحكم في الحركة للأعلى والأسفل؟', options: ['محور X', 'محور Y', 'محور الاتجاه'], ans: 'محور Y', hint: 'الصادي هو الرأسي' },
+    { type: 'input', q: 'ما هو عكس اتجاه السهم الأيمن (90) في الكود؟', ans: '-90', hint: 'وهو اتجاه اليسار' },
+    { type: 'select', q: 'هل يوجد في الكود أي لبنة "إيقاف الكل" (stop all)؟', options: ['نعم', 'لا', 'موجودة تحت الفوز'], ans: 'لا', hint: 'راجع اللبنات جيداً' },
+    { type: 'input', q: 'ماذا تسمى المنطقة التي نضع فيها هذه اللبنات؟', ans: 'Scripts Area', hint: 'أو منطقة البرمجة' }
+];
+
+let currentSlide = 0, currentQ = 0, score = 0, seconds = 0, timer;
+
+function showSlide() {
+    const item = detailedExplanation[currentSlide];
+    document.getElementById('slide-content').innerHTML = `
+        <div class="explanation-card">
+            <h3>${item.title}</h3>
+            <div class="code-block">${item.code}</div>
+            <p>${item.desc}</p>
+        </div>
+    `;
+    document.getElementById('slide-num').innerText = `${currentSlide + 1} / 30`;
+    document.getElementById('prevSlide').disabled = currentSlide === 0;
+    document.getElementById('nextSlide').disabled = currentSlide === 29;
+}
+
+function moveSlide(dir) { currentSlide += dir; showSlide(); }
+
+function initQuiz() {
+    if(!document.getElementById('username').value.trim()) return alert("اكتب اسمك أولاً يا بطل!");
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('quiz-screen').classList.remove('hidden');
+    loadQuestion();
+    timer = setInterval(() => {
+        seconds++;
+        let m = Math.floor(seconds/60), s = seconds%60;
+        document.getElementById('timer-val').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+    }, 1000);
+}
+
+function loadQuestion() {
+    const q = questions[currentQ];
+    document.getElementById('progress-text').innerText = `السؤال ${currentQ + 1} / 30`;
+    document.getElementById('q-text').innerText = q.q;
+    document.getElementById('q-code').innerText = q.code || '';
+    document.getElementById('hint-box').style.display = 'none';
+    if(q.type === 'select') {
+        document.getElementById('options-container').classList.remove('hidden');
+        document.getElementById('input-container').classList.add('hidden');
+        document.getElementById('options-container').innerHTML = '';
+        q.options.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = 'option-btn' + (q.userAns === opt ? ' selected' : '');
+            b.innerText = opt;
+            b.onclick = () => {
+                document.querySelectorAll('.option-btn').forEach(x => x.classList.remove('selected'));
+                b.classList.add('selected'); q.userAns = opt;
+            };
+            document.getElementById('options-container').appendChild(b);
+        });
+    } else {
+        document.getElementById('options-container').classList.add('hidden');
+        document.getElementById('input-container').classList.remove('hidden');
+        document.getElementById('user-code-input').value = q.userAns || '';
+    }
+}
+
+function handleStep() {
+    const q = questions[currentQ];
+    const val = q.type === 'select' ? q.userAns : document.getElementById('user-code-input').value.trim();
+    if(!val) return alert("جاوب الأول!");
+    if(val.toString().toLowerCase() === q.ans.toLowerCase()) {
+        if(!q.done) { score += 10; q.done = true; document.getElementById('score-val').innerText = score; }
+        if(currentQ < 29) { currentQ++; loadQuestion(); } else { finishQuiz(); }
+    } else {
+        document.getElementById('hint-box').style.display = 'block';
+        document.getElementById('hint-text').innerText = q.hint;
+    }
+}
+
+function navigate(dir) { if(currentQ + dir >= 0 && currentQ + dir < 30) { currentQ += dir; loadQuestion(); } }
+function skipQuestion() { if(currentQ < 29) { currentQ++; loadQuestion(); } else { finishQuiz(); } }
+function revealAnswer() {
+    if(confirm("هيتم خصم 10 نقاط عشان تشوف الحل، موافق؟")) {
+        score -= 10; document.getElementById('score-val').innerText = score;
+        alert("الحل الصح هو: " + questions[currentQ].ans);
+    }
+}
+function finishQuiz() {
+    clearInterval(timer);
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+    document.getElementById('congrats-msg').innerText = `بطل يا ${document.getElementById('username').value}! 👑`;
+    document.getElementById('final-stats').innerText = `جمعت ${score} نقطة في ${Math.floor(seconds/60)} دقيقة`;
+}
+
+window.onload = showSlide;
+</script>
+</body>
+</html>
